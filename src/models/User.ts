@@ -15,7 +15,7 @@ export class User implements IUser {
         this._id = user.id;
         this.name = user.name;
         this.password = user.password;
-        this.wins = 0;
+        this.wins = user.wins;
     }
 
     get id(): IUser["id"] {
@@ -26,7 +26,7 @@ export class User implements IUser {
         this._id = id;
     }
 
-    udateWins(newValue: IUser["wins"]) {
-        this.wins = newValue;
+    increaseWins() {
+        this.wins += 1;
     }
 }
