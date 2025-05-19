@@ -16,6 +16,7 @@ export class WinsService {
     }
 
     getAllWins(): IWins[] {
+        this.updateRepository();
         return this.winsRepository.wins;
     }
 

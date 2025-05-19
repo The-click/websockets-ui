@@ -1,5 +1,6 @@
 import { User } from "./../models/User";
 import { UsersRepository } from "../repository/UserRepository";
+import crypto from "crypto";
 
 export enum userServiceError {
     ID_INVALID = "Invalid id is specified",
@@ -40,10 +41,10 @@ export class UserService {
         return user;
     }
 
-    creatUser(data: Pick<User, "name" | "password">): User {
+    private creatUser(data: Pick<User, "name" | "password">): User {
         const newUser: User = new User({
             ...data,
-            id: (+new Date()).toString(),
+            id: crypto.randomUUID(),
             wins: 0,
         });
 
