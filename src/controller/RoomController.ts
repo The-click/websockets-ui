@@ -13,6 +13,16 @@ export enum roomControllerError {
     CONNECTION_NOT_FOUND = "Connection not found",
 }
 
+interface RoomUser {
+    name: string;
+    index: string;
+}
+
+interface RoomData {
+    roomId: string;
+    roomUsers: RoomUser[];
+}
+
 export class RoomController extends BaseController {
     roomService: RoomService;
     connectionService: ConnectionService;
@@ -31,10 +41,24 @@ export class RoomController extends BaseController {
     }
 
     updateRooms(ws: WebSocket) {
-        const rooms = this.roomService.getAllOpenRooms().map((room) => ({
-            roomId: room.id,
-            roomUsers: [{ name: room.user.name, index: room.user.id }],
-        }));
+        const user = this.connectionService.findUserByConnection(ws);
+
+        if (!user) {
+            throw new Error(roomControllerError.USER_NOT_FOUND);
+        }
+
+        const rooms: RoomData[] = [];
+
+        this.roomService.getAllOpenRooms().forEach((room) => {
+            if (room.user.id === user.id) {
+                return;
+            }
+
+            rooms.push({
+                roomId: room.id,
+                roomUsers: [{ name: room.user.name, index: room.user.id }],
+            });
+        });
 
         ws.send(this.getResponse("update_room", rooms));
     }
@@ -45,6 +69,10 @@ export class RoomController extends BaseController {
 
             if (!user) {
                 throw new Error(roomControllerError.USER_NOT_FOUND);
+            }
+
+            if (roomService.getByUser(user)) {
+                return;
             }
 
             roomService.createRoom(user);
@@ -83,6 +111,7 @@ export class RoomController extends BaseController {
             }
 
             room.addEnemy(user);
+            this.roomService.removeRoomByUser(user);
 
             return room;
         } catch (error) {

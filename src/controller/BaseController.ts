@@ -7,6 +7,7 @@ export abstract class BaseController {
 
     getResponse(type: string, data: any) {
         console.log(
+            "=>\n",
             JSON.stringify(
                 { type, data: JSON.stringify(data, null, 1), id: 0 },
                 null,

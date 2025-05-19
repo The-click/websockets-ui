@@ -49,11 +49,13 @@ export class GameController extends BaseController {
                 })
             );
         }
+
+        console.log(error.message);
     }
 
     create(room: Room, ws: WebSocket) {
         try {
-            const game = room.createGame();
+            const game = this.gameService.createGame(room.id);
 
             if (game) {
                 game.getParticipants().forEach((user) => {
@@ -106,6 +108,12 @@ export class GameController extends BaseController {
                     })
                 );
             }
+
+            connection.send(
+                this.getResponse("turn", {
+                    currentPlayer: game.turn.id,
+                })
+            );
         });
     }
 
@@ -138,6 +146,10 @@ export class GameController extends BaseController {
 
                 if (!connection) {
                     throw new Error(gameControllerError.CONNECTION_NOT_FOUND);
+                }
+
+                if (currUser.id === game.turn.id) {
+                    currUser.increaseWins();
                 }
 
                 connection.send(
@@ -183,7 +195,7 @@ export class GameController extends BaseController {
                 connection.send(
                     this.getResponse("attack", {
                         position: { x: data.x, y: data.y },
-                        currentPlayer: game.turn.id,
+                        currentPlayer: user.id,
                         status,
                     })
                 );

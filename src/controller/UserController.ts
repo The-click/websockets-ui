@@ -2,13 +2,11 @@ import {
     ConnectionService,
     connectionService,
 } from "../service/ConnectionSerivce";
-import { roomService } from "../service/RoomService";
 import {
     UserService,
     userService,
     userServiceError,
 } from "../service/UserService";
-import { winService } from "../service/WinsService";
 import { User } from "./../models/User";
 import { BaseController } from "./BaseController";
 import { WebSocket } from "ws";
@@ -31,8 +29,6 @@ export class UserController extends BaseController {
 
     registration(data: Pick<User, "name" | "password">, ws: WebSocket) {
         try {
-            console.log(this);
-            console.log("registartion");
             const user = this.userService.getUser(data);
 
             ws.send(
@@ -42,10 +38,6 @@ export class UserController extends BaseController {
                     error: false,
                     errorText: "",
                 })
-            );
-
-            ws.send(
-                this.getResponse("update_winners", winService.getAllWins())
             );
 
             this.connectionService.addConnection(user, ws);

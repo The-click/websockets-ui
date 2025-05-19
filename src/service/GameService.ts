@@ -5,7 +5,7 @@ import { Game } from "../models/Game";
 import { Room } from "../models/Room";
 
 export enum gameServiceError {
-    GAME_NOT_FOUND = "The room was not found",
+    GAME_NOT_FOUND = "The game was not found",
 }
 
 export class GameService {
@@ -25,6 +25,7 @@ export class GameService {
 
     getById(id: Game["id"]): Game {
         const game = this.gameRepository.getById(id);
+        console.log({ games: this.gameRepository, id });
 
         if (!game) {
             throw new Error(gameServiceError.GAME_NOT_FOUND);

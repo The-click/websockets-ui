@@ -40,11 +40,21 @@ export class RoomService {
         return room;
     }
 
+    getByUser(user: Room["user"]): Room | undefined {
+        const room = this.roomRepository.getByUser(user.id);
+
+        return room;
+    }
+
     addEnemy(user: User, id: Room["id"]) {
         const room = this.getById(id);
         room.addEnemy(user);
 
         return room;
+    }
+
+    removeRoomByUser(user: User) {
+        this.roomRepository.removeRoomByUser(user.id);
     }
 
     createRoom(creator: Room["user"]): Room {

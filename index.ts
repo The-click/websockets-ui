@@ -1,3 +1,5 @@
+import { WinsController } from "./src/controller/WinsController";
+import { winService } from "./src/service/WinsService";
 import { GameController } from "./src/controller/GameController";
 import { RoomController } from "./src/controller/RoomController";
 import { UserController } from "./src/controller/UserController";
@@ -9,6 +11,7 @@ const HTTP_PORT = 8181;
 const userController = new UserController();
 const roomController = new RoomController();
 const gameController = new GameController();
+const winsController = new WinsController();
 
 const wss = new WebSocketServer({ port: 3000 });
 wss.on("connection", function connection(ws) {
@@ -20,12 +23,13 @@ wss.on("connection", function connection(ws) {
         );
         const bodyData = JSON.parse(body.data || "{}");
 
-        console.log(body);
+        console.log("<=\n", body);
 
         switch (body.type) {
             case "reg": {
                 if (userController.registration(bodyData, ws)) {
                     roomController.updateRooms(ws);
+                    winsController.sendUpdateWinners(ws);
                 }
 
                 break;
@@ -34,9 +38,9 @@ wss.on("connection", function connection(ws) {
                 const isCreate = roomController.create(bodyData, ws);
 
                 if (isCreate) {
-                    wss.clients.forEach((currWs) =>
-                        roomController.updateRooms(currWs)
-                    );
+                    wss.clients.forEach((currWs) => {
+                        roomController.updateRooms(currWs);
+                    });
                 }
 
                 break;
@@ -66,17 +70,15 @@ wss.on("connection", function connection(ws) {
 
                 if (game && game.checkShipsIsLive(game.turn) === false) {
                     gameController.endGame(game, ws);
+
+                    wss.clients.forEach((currWs) => {
+                        winsController.sendUpdateWinners(currWs);
+                    });
                 }
 
                 break;
             default:
                 break;
-        }
-
-        if (bodyData.ships) {
-            bodyData.ships.map((ship: any) =>
-                console.log(ship.position, ship.direction, ship.length)
-            );
         }
     });
 });

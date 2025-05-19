@@ -110,7 +110,7 @@ export class Game implements IGame {
         }
 
         if (this.turn === this.enemy) {
-            findedShip = this.enemyShips.find((ship) =>
+            findedShip = this.userShips.find((ship) =>
                 ship.positionCells.find(
                     (position) =>
                         position.x === attackPosition.x &&
