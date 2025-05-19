@@ -1,0 +1,18 @@
+{
+  "compilerOptions": {
+    "module": "CommonJS", 
+    "types": ["node"],      // Или "ESNext" для ESM
+    "target": "ESNext",
+    "moduleResolution": "node",
+    "outDir": "./dist",
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true
+  },
+  "ts-node": {
+    "esm": true,
+
+  },
+  "include": ["src/**/*.ts"],
+  "exclude": ["node_modules"]
+}
