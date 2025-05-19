@@ -65,7 +65,7 @@ wss.on("connection", function connection(ws) {
 
                 break;
             }
-            case "attack":
+            case "attack": {
                 const game = gameController.attack(bodyData, ws);
 
                 if (game && game.checkShipsIsLive(game.turn) === false) {
@@ -75,8 +75,20 @@ wss.on("connection", function connection(ws) {
                         winsController.sendUpdateWinners(currWs);
                     });
                 }
-
                 break;
+            }
+            case "randomAttack": {
+                const game = gameController.randomAttack(bodyData, ws);
+
+                if (game && game.checkShipsIsLive(game.turn) === false) {
+                    gameController.endGame(game, ws);
+
+                    wss.clients.forEach((currWs) => {
+                        winsController.sendUpdateWinners(currWs);
+                    });
+                }
+                break;
+            }
             default:
                 break;
         }

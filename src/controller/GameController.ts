@@ -165,7 +165,18 @@ export class GameController extends BaseController {
         }
     }
 
-    attack(data: any, ws: WebSocket) {
+    randomAttack(data: any, ws: WebSocket) {
+        return this.attack(
+            {
+                ...data,
+                x: Math.round(Math.random() * 9),
+                y: Math.round(Math.random() * 9),
+            },
+            ws
+        );
+    }
+
+    attack(data: any, ws: WebSocket): Game | undefined {
         try {
             const game = this.gameService.getById(data.gameId);
             const user = this.connectionService.findUserByConnection(ws);

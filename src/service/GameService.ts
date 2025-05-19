@@ -25,7 +25,6 @@ export class GameService {
 
     getById(id: Game["id"]): Game {
         const game = this.gameRepository.getById(id);
-        console.log({ games: this.gameRepository, id });
 
         if (!game) {
             throw new Error(gameServiceError.GAME_NOT_FOUND);
