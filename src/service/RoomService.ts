@@ -1,9 +1,12 @@
 import { Room } from "../models/Room";
 import { User } from "../models/User";
 import { RoomRepository } from "../repository/RoomRepository";
+import crypto from "crypto";
+import { Game } from "../models/Game";
 
 export enum roomServiceError {
     ROOM_NOT_FOUND = "The room was not found",
+    ENEMY_NOT_SET = "The enemy not set",
 }
 
 export class RoomService {
@@ -23,6 +26,10 @@ export class RoomService {
         return this.roomRepository.rooms;
     }
 
+    getAllOpenRooms(): Room[] {
+        return this.roomRepository.rooms.filter((room) => room.isOpen);
+    }
+
     getById(id: Room["id"]): Room {
         const room = this.roomRepository.getById(id);
 
@@ -40,12 +47,23 @@ export class RoomService {
         return room;
     }
 
-    creatRoom(creator: Room["user"]): Room {
-        const id = (+new Date()).toString();
+    createRoom(creator: Room["user"]): Room {
+        const id = crypto.randomUUID();
         const room = new Room(creator, id);
         this.roomRepository.saveRoom(room);
 
         return room;
+    }
+
+    createGame(roomId: Room["id"]): Game {
+        const room = this.getById(roomId);
+        const game = room.createGame();
+
+        if (!game) {
+            throw new Error(roomServiceError.ENEMY_NOT_SET);
+        }
+
+        return game;
     }
 }
 
