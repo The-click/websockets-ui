@@ -1,3 +1,4 @@
+import { Cell } from "./../models/Game";
 import {
     ConnectionService,
     connectionService,
@@ -7,7 +8,7 @@ import { BaseController } from "./BaseController";
 import { Room } from "../models/Room";
 import { WebSocket } from "ws";
 import { gameService, GameService } from "../service/GameService";
-import { Game } from "../models/Game";
+import { attackStatus, Game } from "../models/Game";
 
 export enum gameControllerError {
     USER_NOT_FOUND = "User not found",
@@ -189,9 +190,9 @@ export class GameController extends BaseController {
                 throw new Error(gameControllerError.USER_NOT_FOUND);
             }
 
-            const status = game.attack({ x: data.x, y: data.y }, user);
+            const statusObj = game.attack({ x: data.x, y: data.y }, user);
 
-            if (!status) {
+            if (!statusObj) {
                 throw new Error(gameControllerError.OTHER_PLAYER_MOVE);
             }
 
@@ -207,9 +208,22 @@ export class GameController extends BaseController {
                     this.getResponse("attack", {
                         position: { x: data.x, y: data.y },
                         currentPlayer: user.id,
-                        status,
+                        status: statusObj.status,
                     })
                 );
+
+                if (statusObj.status === attackStatus.KILLED) {
+                    statusObj.cellAround.forEach((cell: Cell) => {
+                        connection.send(
+                            this.getResponse("attack", {
+                                position: { x: cell.x, y: cell.y },
+                                currentPlayer: user.id,
+                                status: attackStatus.MISS,
+                            })
+                        );
+                    });
+                }
+
                 connection.send(
                     this.getResponse("turn", {
                         currentPlayer: game.turn.id,

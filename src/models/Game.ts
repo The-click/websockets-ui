@@ -7,7 +7,7 @@ export enum attackStatus {
     SHOT = "shot",
 }
 
-interface Cell {
+export interface Cell {
     x: number;
     y: number;
 }
@@ -22,6 +22,7 @@ interface BaseShip {
 interface Ship extends BaseShip {
     isLive: boolean;
     positionCells: Cell[];
+    cellAround: Cell[];
 }
 
 export interface IGame {
@@ -63,11 +64,12 @@ export class Game implements IGame {
     }
 
     setShips(user: User, baseShips: BaseShip[]) {
-        const ships: Ship[] = baseShips.map((baseShip) => ({
-            ...baseShip,
-            positionCells: this.getPositionCells(baseShip),
-            isLive: true,
-        }));
+        const ships: Ship[] = baseShips.map((baseShip) => {
+            const { positionCells, cellAround } =
+                this.getPositionCells(baseShip);
+
+            return { ...baseShip, positionCells, cellAround, isLive: true };
+        });
 
         if (user === this.user) {
             this.userShips = ships;
@@ -92,7 +94,10 @@ export class Game implements IGame {
         this.turn = this.turn === this.enemy ? this.user : this.enemy;
     }
 
-    attack(attackPosition: Cell, user: User): attackStatus | undefined {
+    attack(
+        attackPosition: Cell,
+        user: User
+    ): ({ status: attackStatus } & Record<string, any>) | undefined {
         if (this.turn !== user) {
             return;
         }
@@ -121,7 +126,7 @@ export class Game implements IGame {
 
         if (!findedShip) {
             this.toggleTurn();
-            return attackStatus.MISS;
+            return { status: attackStatus.MISS };
         }
 
         findedShip.positionCells = findedShip.positionCells.filter(
@@ -133,15 +138,22 @@ export class Game implements IGame {
         );
 
         if (findedShip.positionCells.length) {
-            return attackStatus.SHOT;
+            return { status: attackStatus.SHOT };
         } else {
             findedShip.isLive = false;
-            return attackStatus.KILLED;
+            return {
+                status: attackStatus.KILLED,
+                cellAround: findedShip.cellAround,
+            };
         }
     }
 
-    private getPositionCells(baseShip: BaseShip | Ship) {
+    private getPositionCells(baseShip: BaseShip | Ship): {
+        positionCells: Ship["positionCells"];
+        cellAround: Ship["cellAround"];
+    } {
         const positionCells: Ship["positionCells"] = [];
+        const cellAround: Ship["cellAround"] = [];
 
         for (let i = 0; i < baseShip.length; i++) {
             if (baseShip.direction) {
@@ -149,15 +161,87 @@ export class Game implements IGame {
                     x: baseShip.position.x,
                     y: baseShip.position.y + i,
                 });
+                cellAround.push({
+                    x: baseShip.position.x - 1,
+                    y: baseShip.position.y + i,
+                });
+                cellAround.push({
+                    x: baseShip.position.x + 1,
+                    y: baseShip.position.y + i,
+                });
             } else {
                 positionCells.push({
                     x: baseShip.position.x + i,
                     y: baseShip.position.y,
                 });
+                cellAround.push({
+                    x: baseShip.position.x + i,
+                    y: baseShip.position.y - 1,
+                });
+                cellAround.push({
+                    x: baseShip.position.x + i,
+                    y: baseShip.position.y + 1,
+                });
             }
         }
 
-        return positionCells;
+        if (baseShip.direction) {
+            cellAround.push({
+                x: baseShip.position.x,
+                y: baseShip.position.y - 1,
+            });
+            cellAround.push({
+                x: baseShip.position.x - 1,
+                y: baseShip.position.y - 1,
+            });
+            cellAround.push({
+                x: baseShip.position.x + 1,
+                y: baseShip.position.y - 1,
+            });
+        } else {
+            cellAround.push({
+                x: baseShip.position.x - 1,
+                y: baseShip.position.y,
+            });
+            cellAround.push({
+                x: baseShip.position.x - 1,
+                y: baseShip.position.y - 1,
+            });
+            cellAround.push({
+                x: baseShip.position.x - 1,
+                y: baseShip.position.y + 1,
+            });
+        }
+
+        if (baseShip.direction) {
+            cellAround.push({
+                x: baseShip.position.x,
+                y: baseShip.position.y + baseShip.length,
+            });
+            cellAround.push({
+                x: baseShip.position.x - 1,
+                y: baseShip.position.y + baseShip.length,
+            });
+            cellAround.push({
+                x: baseShip.position.x + 1,
+                y: baseShip.position.y + baseShip.length,
+            });
+        } else {
+            cellAround.push({
+                x: baseShip.position.x + baseShip.length,
+                y: baseShip.position.y,
+            });
+            cellAround.push({
+                x: baseShip.position.x + baseShip.length,
+                y: baseShip.position.y - 1,
+            });
+            cellAround.push({
+                x: baseShip.position.x + baseShip.length,
+                y: baseShip.position.y + 1,
+            });
+        }
+
+        return { positionCells, cellAround };
     }
 
     getParticipants() {
